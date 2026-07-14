@@ -11,6 +11,7 @@ function getOrCreate(userId: number): UserState {
       history: [],
       lastAIResponse: "",
       settings: { autoVoice: false },
+      pendingVideoUrl: null,
     });
   }
   return store.get(userId)!;
@@ -27,7 +28,6 @@ export function setMode(userId: number, mode: UserMode): void {
 export function addMessage(userId: number, msg: ChatMessage): void {
   const state = getOrCreate(userId);
   state.history.push(msg);
-  // Keep only last MAX_HISTORY messages
   if (state.history.length > MAX_HISTORY) {
     state.history = state.history.slice(state.history.length - MAX_HISTORY);
   }
@@ -51,4 +51,12 @@ export function toggleAutoVoice(userId: number): boolean {
 
 export function getHistoryCount(userId: number): number {
   return getOrCreate(userId).history.length;
+}
+
+export function setPendingVideoUrl(userId: number, url: string | null): void {
+  getOrCreate(userId).pendingVideoUrl = url;
+}
+
+export function getPendingVideoUrl(userId: number): string | null {
+  return getOrCreate(userId).pendingVideoUrl;
 }

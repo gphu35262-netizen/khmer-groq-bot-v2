@@ -21,4 +21,5 @@ export interface UserState {
   history: ChatMessage[];
   lastAIResponse: string;
   settings: UserSettings;
+  pendingVideoUrl: string | null;
 }
