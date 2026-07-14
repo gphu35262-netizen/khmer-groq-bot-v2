@@ -1,57 +1,29 @@
-import googleTTS from "google-tts-api";
-import axios from "axios";
-import fs from "fs";
-import path from "path";
-import os from "os";
+import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
+import fs from "node:fs/promises";
+import os from "node:os";
 
-const MAX_TTS_LENGTH = 800;
+// Microsoft Edge Neural TTS — free, no API key, very natural sound.
+// km-KH-SreymomNeural : female (warm, clear)
+// km-KH-PisethNeural  : male  (deeper)
+const VOICE = "km-KH-SreymomNeural";
 
 /**
- * Convert text to Khmer speech, return path to downloaded mp3 file.
+ * Convert text to a natural-sounding Khmer MP3 using Microsoft Edge Neural TTS.
+ * Returns the path to the generated file (cleaned up by the caller).
  */
 export async function textToSpeechFile(text: string): Promise<string> {
-  const trimmed = text.slice(0, MAX_TTS_LENGTH);
+  // Edge TTS handles long text natively — up to ~2000 chars is safe
+  const input = text.slice(0, 2000).trim();
+  if (!input) throw new Error("អត្ថបទទទេ — មិនអាចបំប្លែងបានទេ");
 
-  // Get all audio URLs (handles long text by splitting)
-  const urls = googleTTS.getAllAudioUrls(trimmed, {
-    lang: "km",
-    slow: false,
-    host: "https://translate.google.com",
-    splitPunct: ",.?!;",
-  });
+  const tts = new MsEdgeTTS();
+  await tts.setMetadata(VOICE, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
 
-  if (!urls.length || !urls[0]) {
-    throw new Error("TTS មិនអាចបង្កើត URL បានទេ");
-  }
-
-  // Use first chunk URL
-  const audioUrl = urls[0].url;
-  const tmpFile = path.join(os.tmpdir(), `tts_${Date.now()}.mp3`);
-
-  const response = await axios.get<NodeJS.ReadableStream>(audioUrl, {
-    responseType: "stream",
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      Referer: "https://translate.google.com/",
-    },
-    timeout: 15000,
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    const writer = fs.createWriteStream(tmpFile);
-    response.data.pipe(writer);
-    writer.on("finish", resolve);
-    writer.on("error", reject);
-  });
-
-  return tmpFile;
+  // toFile(directory, text) → writes an mp3 into the given directory
+  const { audioFilePath } = await tts.toFile(os.tmpdir(), input);
+  return audioFilePath;
 }
 
-export function cleanupFile(filePath: string): void {
-  try {
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  } catch {
-    // ignore
-  }
+export async function cleanupFile(filePath: string): Promise<void> {
+  await fs.unlink(filePath).catch(() => {});
 }

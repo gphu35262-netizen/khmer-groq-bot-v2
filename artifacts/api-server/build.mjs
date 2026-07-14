@@ -70,6 +70,7 @@ async function buildAll() {
       "@parcel/watcher",
       "@sentry/profiling-node",
       "@imgly/*",
+      "msedge-tts",
       "@tree-sitter/*",
       "aws-sdk",
       "classic-level",
