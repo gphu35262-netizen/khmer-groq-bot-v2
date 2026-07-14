@@ -1,6 +1,6 @@
-# Telegram AI Bot (Khmer)
+# Khmer AI Bot — Telegram
 
-A Telegram AI bot powered by Groq that replies to all users in Khmer (ភាសាខ្មែរ).
+Bot Telegram AI ពេញលេញ ដែលឆ្លើយជាភាសាខ្មែរ 100% មានមុខងារ Chat AI, Image Generator, Voice TTS, Video Downloader, Memory, និង Settings។
 
 ## Run & Operate
 
@@ -9,44 +9,66 @@ A Telegram AI bot powered by Groq that replies to all users in Khmer (ភាស�
 
 ## Required Secrets
 
-Set these in Replit Secrets (already configured if you followed setup):
-
 | Secret | Description |
 |---|---|
-| `TELEGRAM_BOT_TOKEN` | From [@BotFather](https://t.me/BotFather) on Telegram |
+| `TELEGRAM_BOT_TOKEN` | From [@BotFather](https://t.me/BotFather) |
 | `GROQ_API_KEY` | From [console.groq.com](https://console.groq.com) |
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5 + pino logger
 - Telegram: `node-telegram-bot-api` (polling mode)
-- AI: Groq SDK — `llama-3.3-70b-versatile`
+- AI Chat: Groq SDK — `llama-3.3-70b-versatile`
+- TTS: `google-tts-api` — free Google TTS, Khmer (km)
+- Image Gen: Pollinations.ai — free, no API key needed
+- Video: `yt-dlp-wrap` — YouTube, TikTok, Facebook
 
-## Bot Commands
+## Bot Commands & Features
 
-| Command | Description |
+| Feature | How to use |
 |---|---|
-| `/start` | Welcome message in Khmer |
-| (any text) | AI reply in Khmer via Groq |
+| `/start` | Welcome message + main menu |
+| `/menu` | Show main menu anytime |
+| 💬 Chat AI | AI replies in Khmer, remembers last 20 messages |
+| 🎨 Create Image | Type Khmer description → AI generates image |
+| 🔊 Voice AI | Type text → get Khmer audio voice |
+| 📥 Video Download | Send YouTube / TikTok / Facebook URL → pick quality |
+| 🧠 Memory AI | View/clear conversation history |
+| ⚙️ Settings | Toggle Auto Voice (read AI replies aloud) |
 
 ## Where things live
 
-- `artifacts/api-server/src/bot.ts` — Telegram bot logic (commands, Groq integration)
-- `artifacts/api-server/src/index.ts` — server entry point (starts bot + Express)
+```
+artifacts/api-server/src/
+├── bot.ts                  # Main bot — all routing, handlers, menus
+├── bot/
+│   ├── types.ts            # UserState, ChatMessage, UserMode types
+│   ├── menu.ts             # Inline keyboard definitions
+│   ├── memory.ts           # Per-user conversation memory (Map)
+│   └── services/
+│       ├── ai.ts           # Groq chat + prompt translation
+│       ├── tts.ts          # Google TTS → mp3 → Telegram voice
+│       ├── image.ts        # Pollinations.ai image generation
+│       └── video.ts        # yt-dlp binary + download logic
+```
 
 ## Architecture decisions
 
-- Bot runs in **polling mode** — no webhook or public HTTPS URL needed; works out of the box on Replit.
-- All AI responses are forced to Khmer via a system prompt sent to Groq on every message.
-- The bot is imported directly from `index.ts` so it starts alongside the Express server.
+- Bot runs in **polling mode** — no webhook or HTTPS domain needed.
+- Image generation uses **Pollinations.ai** (free, no API key) via `flux` model; Khmer prompts are first translated to English by Groq for better results.
+- yt-dlp binary is auto-downloaded to `/tmp/yt-dlp` on first video request.
+- Conversation memory is **in-process** (Map) — resets on server restart. 20-message rolling window per user.
+- Auto Voice setting sends Groq replies as voice messages automatically when ON.
+- All user state (mode, history, settings) stored per `userId`, not `chatId`.
+
+## 24/7 Operation
+
+For the bot to run 24/7 (even when you close your phone), **deploy this project** using the Publish button. Replit's deployment keeps the server alive continuously.
 
 ## User preferences
 
-- Bot language: Khmer (ភាសាខ្មែរ)
-- AI model: llama-3.3-70b-versatile via Groq
-
-## Gotchas
-
-- Do not set `TELEGRAM_BOT_TOKEN` or `GROQ_API_KEY` via `setEnvVars` — they are secrets and must be managed via `requestSecrets`.
-- Polling mode means only one instance of the bot should run at a time; do not start duplicate workflows.
+- Bot language: ភាសាខ្មែរ 100%
+- AI model: llama-3.3-70b-versatile (Groq)
+- Image model: flux (Pollinations.ai)
+- Video max quality: 720p (48MB Telegram limit enforced)
