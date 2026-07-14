@@ -3,15 +3,23 @@ import type { InlineKeyboardMarkup } from "node-telegram-bot-api";
 export const mainMenuKeyboard: InlineKeyboardMarkup = {
   inline_keyboard: [
     [
-      { text: "💬 Chat AI", callback_data: "mode_chat" },
-      { text: "🎨 Create Image", callback_data: "mode_image" },
+      { text: "🖼️ លុបBG", callback_data: "mode_removebg" },
+      { text: "📷 លុបស្នាម", callback_data: "mode_enhance" },
     ],
     [
-      { text: "🔊 Voice AI", callback_data: "mode_voice" },
-      { text: "📥 Video Download", callback_data: "mode_video" },
+      { text: "📄 Copy អក្សរ", callback_data: "mode_ocr" },
+      { text: "🔍 QR Code", callback_data: "mode_qr" },
     ],
     [
-      { text: "🧠 Memory AI", callback_data: "mode_memory" },
+      { text: "🤖 AI Chat", callback_data: "mode_chat" },
+      { text: "🗣️ Text to Voice", callback_data: "mode_voice" },
+    ],
+    [
+      { text: "🖼️ បង្កើតរូប AI", callback_data: "mode_image" },
+      { text: "✍️ សង្ខេបអត្ថបទ", callback_data: "mode_summarize" },
+    ],
+    [
+      { text: "🌐 បកប្រែភាសា", callback_data: "mode_translate" },
       { text: "⚙️ Settings", callback_data: "mode_settings" },
     ],
   ],

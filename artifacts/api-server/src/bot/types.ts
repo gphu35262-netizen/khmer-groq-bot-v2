@@ -5,7 +5,13 @@ export type UserMode =
   | "voice"
   | "video"
   | "memory"
-  | "settings";
+  | "settings"
+  | "removebg"
+  | "enhance"
+  | "ocr"
+  | "qr"
+  | "summarize"
+  | "translate";
 
 export interface ChatMessage {
   role: "user" | "assistant";

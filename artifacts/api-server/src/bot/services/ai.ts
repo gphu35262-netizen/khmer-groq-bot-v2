@@ -67,3 +67,60 @@ export async function translatePromptToEnglish(khmerPrompt: string): Promise<str
     completion.choices[0]?.message?.content?.trim() ?? khmerPrompt
   );
 }
+
+export async function summarizeText(text: string): Promise<string> {
+  const groq = getGroq();
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      {
+        role: "system",
+        content:
+          `អ្នកជា AI ដែលសង្ខេបអត្ថបទ។ ច្បាប់:
+- សង្ខេបជាភាសាខ្មែរ 100%
+- សង្ខេបឲ្យខ្លី ច្បាស់ 3-5 ប្រយោគ
+- រក្សាចំណុចសំខាន់ៗទាំងអស់
+- ប្រើ Bullet Points • ដើម្បីងាយអាន
+- ចាប់ផ្ដើមដោយ "📝 *សង្ខេប:*"`,
+      },
+      { role: "user", content: `សូមសង្ខេបអត្ថបទខាងក្រោម:\n\n${text}` },
+    ],
+    max_tokens: 600,
+    temperature: 0.4,
+  });
+
+  return (
+    completion.choices[0]?.message?.content?.trim() ??
+    "❌ មិនអាចសង្ខេបបានទេ សូមព្យាយាមម្ដងទៀត"
+  );
+}
+
+export async function translateText(text: string): Promise<string> {
+  const groq = getGroq();
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      {
+        role: "system",
+        content:
+          `អ្នកជា AI បកប្រែ។ ច្បាប់:
+- Auto-Detect ភាសាប្រភព
+- ប្រសិនបើជាភាសាខ្មែរ → បកប្រែជាភាសាអង់គ្លេស
+- ប្រសិនបើជាភាសាអং់គ្លេស → បកប្រែជាភាសាខ្មែរ
+- ភាសាផ្សេងទៀត → បកប្រែជាភាសាខ្មែរ
+- ចំលើយ: ភាសាប្រភព → ភាសាគោលដៅ បន្ទាប់មក ការបកប្រែ
+- Format: "🌐 *[ភាសាប្រភព] → [ភាសាគោលដៅ]*\n\n[ការបកប្រែ]"`,
+      },
+      { role: "user", content: text },
+    ],
+    max_tokens: 800,
+    temperature: 0.2,
+  });
+
+  return (
+    completion.choices[0]?.message?.content?.trim() ??
+    "❌ មិនអាចបកប្រែបានទេ សូមព្យាយាមម្ដងទៀត"
+  );
+}
