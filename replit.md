@@ -1,45 +1,52 @@
-# [Project name]
+# Telegram AI Bot (Khmer)
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A Telegram AI bot powered by Groq that replies to all users in Khmer (ភាសាខ្មែរ).
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — start the bot + API server
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+
+## Required Secrets
+
+Set these in Replit Secrets (already configured if you followed setup):
+
+| Secret | Description |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | From [@BotFather](https://t.me/BotFather) on Telegram |
+| `GROQ_API_KEY` | From [console.groq.com](https://console.groq.com) |
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Telegram: `node-telegram-bot-api` (polling mode)
+- AI: Groq SDK — `llama-3.3-70b-versatile`
+
+## Bot Commands
+
+| Command | Description |
+|---|---|
+| `/start` | Welcome message in Khmer |
+| (any text) | AI reply in Khmer via Groq |
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/api-server/src/bot.ts` — Telegram bot logic (commands, Groq integration)
+- `artifacts/api-server/src/index.ts` — server entry point (starts bot + Express)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Bot runs in **polling mode** — no webhook or public HTTPS URL needed; works out of the box on Replit.
+- All AI responses are forced to Khmer via a system prompt sent to Groq on every message.
+- The bot is imported directly from `index.ts` so it starts alongside the Express server.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Bot language: Khmer (ភាសាខ្មែរ)
+- AI model: llama-3.3-70b-versatile via Groq
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Do not set `TELEGRAM_BOT_TOKEN` or `GROQ_API_KEY` via `setEnvVars` — they are secrets and must be managed via `requestSecrets`.
+- Polling mode means only one instance of the bot should run at a time; do not start duplicate workflows.
