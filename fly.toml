@@ -1,0 +1,12 @@
+app = "khmer-ai-bot"
+primary_region = "sin"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+
+# No [[services]] — this is a background worker (long-polling, no HTTP port needed)
+
+[deploy]
+  release_command = ""
