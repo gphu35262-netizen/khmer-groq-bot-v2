@@ -1,12 +1,16 @@
-app = "khmer-ai-bot"
+app = "khmer-groq-bot-v2"
 primary_region = "sin"
 
 [build]
 
 [env]
   NODE_ENV = "production"
+  PORT = "8080"
 
-# No [[services]] — this is a background worker (long-polling, no HTTP port needed)
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
 
-[deploy]
-  release_command = ""
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout  = "10s"
