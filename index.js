@@ -7,4 +7,6 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
+  // Exit so Render restarts the worker automatically
+  process.exit(1);
 });

@@ -19,7 +19,13 @@ import { extractTextFromImage } from './bot/services/ocr.js';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 if (!TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN is required');
 
-const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: { timeout: 10, allowed_updates: ['message', 'callback_query'] },
+  },
+});
 
 bot.setMyCommands([
   { command: 'start', description: 'ចាប់ផ្ដើម Bot + Menu' },
@@ -613,10 +619,36 @@ bot.on('message', async (msg) => {
   await sendMainMenu(chatId);
 });
 
-// ── Polling error ─────────────────────────────────────────────────────────────
+// ── Polling error — auto-reconnect with backoff ───────────────────────────────
 
-bot.on('polling_error', (err) => {
-  console.error('[polling_error]', err);
+let _pollFailCount = 0;
+
+bot.on('polling_error', async (err) => {
+  const code = err?.response?.body?.error_code;
+  const msg  = err?.message || String(err);
+  console.error(`[polling_error] #${_pollFailCount + 1} code=${code} ${msg}`);
+
+  // 409 Conflict = another instance running; wait longer before restart
+  const delayMs = code === 409 ? 15_000 : Math.min(3_000 * 2 ** _pollFailCount, 60_000);
+  _pollFailCount++;
+
+  // Too many consecutive failures → let Render restart the process cleanly
+  if (_pollFailCount > 8) {
+    console.error('[polling] too many consecutive errors — exiting for Render restart');
+    process.exit(1);
+  }
+
+  await new Promise(r => setTimeout(r, delayMs));
+
+  try {
+    await bot.stopPolling();
+    await bot.startPolling();
+    console.log('[polling] reconnected OK');
+    _pollFailCount = 0;
+  } catch (restartErr) {
+    console.error('[polling] restart failed:', restartErr.message);
+    process.exit(1);
+  }
 });
 
 console.log('🤖 Khmer AI Bot started with polling');
